@@ -103,21 +103,39 @@ elif page == "Diabetes":
 # ----------------------------
 # 🧠 STRESS LEVEL PREDICTOR
 # ----------------------------
+# ----------------------------
+# 🧠 SIMPLIFIED STRESS LEVEL PREDICTOR (5 Features)
+# ----------------------------
 elif page == "Stress Level":
     st.header("🧠 Stress Level Prediction")
 
-    sleep_hours = st.slider("Average Sleep Hours per Night", 0, 12, 6)
-    work_hours = st.slider("Work/Study Hours per Day", 0, 16, 8)
-    social = st.slider("Social Activity Hours per Day", 0, 8, 2)
-    exercise = st.slider("Exercise Hours per Day", 0, 6, 1)
-    workload = st.selectbox("Current Workload", ["Low", "Medium", "High"])
-    workload_val = {"Low": 0, "Medium": 1, "High": 2}[workload]
+    # Collect user inputs (same as model training columns)
+    age = st.number_input("Age", 15, 80, 25)
+    gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+    family_history = st.selectbox("Family History of Mental Illness?", ["Yes", "No"])
+    no_employees = st.selectbox("Company Size", ["1-5", "6-25", "26-100", "100-500", "500-1000", "More than 1000"])
+    benefits = st.selectbox("Mental Health Benefits Provided?", ["Yes", "No"])
 
     if st.button("Predict Stress Level"):
-        features = np.array([[sleep_hours, work_hours, social, exercise, workload_val]])
+        # Encode categorical data exactly like model training
+        gender_map = {"Male": 0, "Female": 1, "Other": 2}
+        family_map = {"No": 0, "Yes": 1}
+        benefits_map = {"No": 0, "Yes": 1}
+        size_map = {
+            "1-5": 0,
+            "6-25": 1,
+            "26-100": 2,
+            "100-500": 3,
+            "500-1000": 4,
+            "More than 1000": 5
+        }
+
+        features = np.array([[age, gender_map[gender], family_map[family_history],
+                              size_map[no_employees], benefits_map[benefits]]])
+
         try:
             result = stress_model.predict(features)[0]
-            if result == 2:
+            if result >= 2:
                 st.session_state["results"]["Stress Level"] = "⚠️ High"
                 st.error("⚠️ High Stress Level detected.")
             elif result == 1:
@@ -129,7 +147,6 @@ elif page == "Stress Level":
         except Exception as e:
             st.error(f"Prediction error: {e}")
 
-# ----------------------------
 # 🏃‍♂️ FITNESS PREDICTOR
 # ----------------------------
 elif page == "Fitness Level":
