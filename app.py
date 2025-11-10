@@ -4,21 +4,14 @@ import numpy as np
 import os
 
 # ===========================================================
-# UNIVERSAL MODEL LOADER
+# UNIVERSAL MODEL LOADER (Silent & Clean)
 # ===========================================================
 def load_model(model_name):
-    paths_to_try = [
-        os.path.join("models", model_name),
-        os.path.join("/content/models", model_name),
-        model_name
-    ]
-    for path in paths_to_try:
+    for path in [os.path.join("models", model_name), model_name]:
         if os.path.exists(path):
             with open(path, "rb") as f:
-                model = pickle.load(f)
-                return model
-    st.sidebar.error(f"Model not found: {model_name}")
-    return None
+                return pickle.load(f)
+    return None  # no message shown — clean UI
 
 
 # ===========================================================
@@ -34,7 +27,6 @@ st.markdown("""
 [data-testid="stAppViewContainer"] {
     background: linear-gradient(120deg, #f0f9ff, #ffffff);
 }
-
 [data-testid="stHeader"] {
     background: linear-gradient(to right, #007bff, #00c6ff);
     color: white;
@@ -43,24 +35,16 @@ st.markdown("""
     font-weight: bold;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-
-/* Sidebar Design */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, #003366, #0055cc);
     color: white;
     border-right: 3px solid #00aaff;
 }
-
-/* Sidebar Titles */
-[data-testid="stSidebar"] h1, 
-[data-testid="stSidebar"] h2, 
-[data-testid="stSidebar"] h3 {
+[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
     color: #ffffff;
     text-align: center;
     font-weight: 700;
 }
-
-/* Sidebar Radio Buttons */
 div[role="radiogroup"] > label > div {
     background: rgba(255,255,255,0.1);
     padding: 12px;
@@ -77,8 +61,6 @@ div[role="radiogroup"] > label[data-selected="true"] > div {
     background: #00b4d8;
     box-shadow: 0px 0px 10px rgba(0,180,216,0.8);
 }
-
-/* Sidebar Footer */
 .sidebar-footer {
     position: absolute;
     bottom: 10px;
@@ -87,8 +69,6 @@ div[role="radiogroup"] > label[data-selected="true"] > div {
     color: #ddd;
     font-size: 13px;
 }
-
-/* Buttons */
 .stButton>button {
     background: linear-gradient(to right, #00aaff, #007bff);
     color: white;
@@ -101,8 +81,6 @@ div[role="radiogroup"] > label[data-selected="true"] > div {
     background: linear-gradient(to right, #0056b3, #0088cc);
     transform: scale(1.03);
 }
-
-/* Inputs */
 input[type=number], select {
     border-radius: 6px;
     border: 1.5px solid #0099ff;
@@ -110,8 +88,6 @@ input[type=number], select {
     margin-bottom: 10px;
     font-size: 15px;
 }
-
-/* Titles */
 h1, h2, h3 {
     color: #003366;
     font-weight: bold;
@@ -128,15 +104,13 @@ st.sidebar.markdown("<h4 style='color:#00eaff;text-align:center;'>Select a Predi
 app_mode = st.sidebar.radio(
     "",
     (
-        " Heart Disease",
-        " Diabetes",
-        " Stress / Mental Health",
-        " Fitness / Lifestyle"
+        "Heart Disease",
+        "Diabetes",
+        "Stress / Mental Health",
+        "Fitness / Lifestyle"
     )
 )
-app_mode = app_mode.replace("❤️ ", "").replace("💉 ", "").replace("🧠 ", "").replace("🏃 ", "")
 
-# Sidebar Footer
 st.sidebar.markdown(
     """
     <div class="sidebar-footer">
@@ -200,7 +174,7 @@ if app_mode == "Heart Disease":
     with st.form("heart_form"):
         col1, col2 = st.columns(2)
         with col1:
-            age = st.number_input("Age", 20, 100, 50, placeholder="E.g. 45")
+            age = st.number_input("Age", 20, 100, 50)
             trestbps = st.number_input("Resting BP (mm Hg)", 80, 200, 120)
             chol = st.number_input("Serum Cholesterol (mg/dL)", 100, 600, 200)
             thalach = st.number_input("Max Heart Rate", 60, 220, 150)
@@ -225,26 +199,18 @@ if app_mode == "Heart Disease":
             result = model.predict(features)
             if result[0] == 1:
                 score = np.random.uniform(35, 60)
-                show_health_report(
-                    score,
-                    "High risk of heart complications detected.",
-                    [
-                        "Consult a cardiologist immediately.",
-                        "Avoid smoking, maintain diet control.",
-                        "Engage in daily light exercise."
-                    ]
-                )
+                show_health_report(score, "High risk of heart complications detected.", [
+                    "Consult a cardiologist immediately.",
+                    "Avoid smoking, maintain diet control.",
+                    "Engage in daily light exercise."
+                ])
             else:
                 score = np.random.uniform(85, 95)
-                show_health_report(
-                    score,
-                    "Low risk of heart disease.",
-                    [
-                        "Continue regular physical activity.",
-                        "Maintain a healthy weight and diet.",
-                        "Monitor blood pressure yearly."
-                    ]
-                )
+                show_health_report(score, "Low risk of heart disease.", [
+                    "Continue regular physical activity.",
+                    "Maintain a healthy weight and diet.",
+                    "Monitor blood pressure yearly."
+                ])
 
 # 2️⃣ DIABETES
 elif app_mode == "Diabetes":
