@@ -88,8 +88,8 @@ if app_mode == "Heart Disease":
     if st.button("🔍 Predict Heart Risk"):
         if model is not None:
             features = np.array([[age, sex, cp, trestbps, chol, fbs, exang, thalach, oldpeak, slope]])
-            if scaler is not None:
-                features = scaler.transform(features)
+            # if scaler is not None:
+            #     features = scaler.transform(features)
             result = model.predict(features)
             risk = "High Risk" if result[0] == 1 else "Low Risk"
             st.subheader(f"🩺 Prediction: {risk}")
