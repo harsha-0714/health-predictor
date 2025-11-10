@@ -111,14 +111,18 @@ app_mode = st.sidebar.radio(
     )
 )
 
+# Add visual space before footer
+st.sidebar.markdown("<br><br><br><hr><br>", unsafe_allow_html=True)
+
 st.sidebar.markdown(
     """
-    <div class="sidebar-footer">
-        © 2025 Health Predictor | Smart Wellness System
+    <div class="sidebar-footer" style="text-align:center; color:#cccccc; font-size:13px;">
+        © 2025 Health Predictor <br> Smart Wellness System
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 # ===========================================================
 # BACKGROUND IMAGES
