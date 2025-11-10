@@ -65,6 +65,9 @@ st.markdown(
 # ===========================================================
 # ✅ HEART DISEASE PREDICTION
 # ===========================================================
+# ===========================================================
+# ✅ HEART DISEASE PREDICTION (13 features)
+# ===========================================================
 if app_mode == "Heart Disease":
     st.title("💖 Heart Disease Prediction")
 
@@ -72,35 +75,55 @@ if app_mode == "Heart Disease":
     scaler = load_model("heart_scaler.pkl")
 
     col1, col2 = st.columns(2)
+
     with col1:
         age = st.number_input("Age", 20, 100, 50)
         trestbps = st.number_input("Resting Blood Pressure (mm Hg)", 80, 200, 120)
-        chol = st.number_input("Cholesterol (mg/dL)", 100, 600, 200)
-        thalach = st.number_input("Max Heart Rate", 60, 220, 150)
+        chol = st.number_input("Serum Cholesterol (mg/dL)", 100, 600, 200)
+        thalach = st.number_input("Maximum Heart Rate Achieved", 60, 220, 150)
+        fbs = st.selectbox("Fasting Blood Sugar >120 (1=True,0=False)", [0, 1])
+        restecg = st.selectbox("Resting ECG Results (0–2)", [0, 1, 2])
+
     with col2:
-    sex = st.selectbox("Sex (0 = Female, 1 = Male)", [0, 1])
-    cp = st.selectbox("Chest Pain Type (0–3)", [0, 1, 2, 3])
-    fbs = st.selectbox("Fasting Blood Sugar >120 (1=True,0=False)", [0, 1])
-    restecg = st.selectbox("Resting ECG Results (0–2)", [0, 1, 2])
-    exang = st.selectbox("Exercise Induced Angina (1=True,0=False)", [0, 1])
-    oldpeak = st.number_input("ST Depression", 0.0, 6.0, 1.0)
-    slope = st.selectbox("Slope (0–2)", [0, 1, 2])
-    ca = st.selectbox("No. of Major Vessels (0–3)", [0, 1, 2, 3])
-    thal = st.selectbox("Thal (1=Normal, 2=Fixed Defect, 3=Reversible Defect)", [1, 2, 3])
+        sex = st.selectbox("Sex (0 = Female, 1 = Male)", [0, 1])
+        cp = st.selectbox("Chest Pain Type (0–3)", [0, 1, 2, 3])
+        exang = st.selectbox("Exercise Induced Angina (1=True,0=False)", [0, 1])
+        oldpeak = st.number_input("ST Depression (Oldpeak)", 0.0, 6.0, 1.0)
+        slope = st.selectbox("Slope of ST Segment (0–2)", [0, 1, 2])
+        ca = st.selectbox("Number of Major Vessels (0–3)", [0, 1, 2, 3])
+        thal = st.selectbox("Thal (1=Normal, 2=Fixed Defect, 3=Reversible Defect)", [1, 2, 3])
 
-
-    if st.button("🔍 Predict Heart Risk"):
+    if st.button("🔍 Predict Heart Disease Risk"):
         if model is not None:
-            features = np.array([[age, sex, cp, trestbps, chol, fbs, exang, thalach, oldpeak, slope]])
-            # if scaler is not None:
-            #     features = scaler.transform(features)
-            result = model.predict(features)
-            risk = "High Risk" if result[0] == 1 else "Low Risk"
-            st.subheader(f"🩺 Prediction: {risk}")
-            if result[0] == 1:
-                st.error("⚠️ High Risk: Please consult a cardiologist.")
-            else:
-                st.success("✅ Low Risk: Keep up a healthy lifestyle.")
+            try:
+                # 13 total features (match training)
+                features = np.array([[age, sex, cp, trestbps, chol, fbs,
+                                      restecg, thalach, exang, oldpeak,
+                                      slope, ca, thal]])
+
+                # Safely apply scaler if compatible
+                if scaler is not None:
+                    try:
+                        if scaler.n_features_in_ == features.shape[1]:
+                            features = scaler.transform(features)
+                        else:
+                            st.warning(f"⚠️ Skipping scaling — expected {scaler.n_features_in_} features, got {features.shape[1]}")
+                    except Exception as e:
+                        st.warning(f"⚠️ Skipping scaling: {e}")
+
+                # Predict
+                result = model.predict(features)
+                risk = "High Risk" if result[0] == 1 else "Low Risk"
+                st.subheader(f"🩺 Prediction: {risk}")
+
+                if result[0] == 1:
+                    st.error("⚠️ High Risk: Please consult a cardiologist.")
+                else:
+                    st.success("✅ Low Risk: Maintain your healthy habits!")
+            except Exception as e:
+                st.error(f"Prediction Error: {e}")
+        else:
+            st.error("❌ Model not loaded correctly.")
 
 # ===========================================================
 # ✅ DIABETES PREDICTION
