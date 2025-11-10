@@ -68,7 +68,7 @@ def set_background_for(page_name):
     st.markdown(css, unsafe_allow_html=True)
 
 # ---------- Load models ----------
-heart_model = load_model("models/heart_model.pkl")
+heart_model = load_model("/content/heart_model.pkl")
 diabetes_model = load_model("models/diabetes_model.pkl")
 stress_model = load_model("models/stress_model.pkl")
 fitness_model = load_model("models/fitness_model.pkl")
