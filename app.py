@@ -28,7 +28,7 @@ def load_model(model_name):
 st.set_page_config(page_title="Health Predictor Dashboard", layout="wide")
 
 # ===========================================================
-# CUSTOM CSS (Modern Navigation Bar)
+# CUSTOM CSS (Modern Navigation Bar with Improved UI)
 # ===========================================================
 st.markdown("""
 <style>
@@ -44,38 +44,54 @@ st.markdown("""
     color: white;
     font-size: 22px;
     padding: 15px;
+    font-weight: 600;
 }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
     background: rgba(255, 255, 255, 0.95);
     border-right: 2px solid #ccc;
+    padding: 20px;
 }
 
 /* Titles and text */
 h1, h2, h3, h4 {
     color: #003366;
+    font-weight: 700;
+}
+
+/* Buttons */
+.stButton>button {
+    background-color: #0099ff;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+.stButton>button:hover {
+    background-color: #007acc;
+}
+
+/* Input fields */
+input[type=number], select {
+    border-radius: 6px;
+    border: 1.5px solid #ccc;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    font-size: 16px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ===========================================================
-# SIDEBAR NAVIGATION
-# ===========================================================
-st.sidebar.title("Navigation")
-app_mode = st.sidebar.radio(
-    "Select a Health Prediction Model:",
-    ("Heart Disease", "Diabetes", "Stress / Mental Health", "Fitness / Lifestyle")
-)
-
-# ===========================================================
-# BACKGROUND IMAGES BASED ON MODEL
+# BACKGROUND IMAGES BASED ON MODEL (Using custom generated images)
 # ===========================================================
 backgrounds = {
-    "Heart Disease": "https://cdn.pixabay.com/photo/2020/06/06/18/31/heart-5266636_1280.jpg",
-    "Diabetes": "https://cdn.pixabay.com/photo/2021/02/18/11/44/diabetes-6025873_1280.jpg",
-    "Stress / Mental Health": "https://cdn.pixabay.com/photo/2016/11/23/00/38/water-lilies-1850196_1280.jpg",
-    "Fitness / Lifestyle": "https://cdn.pixabay.com/photo/2017/06/06/13/06/training-2379278_1280.jpg",
+    "Heart Disease": "https://user-gen-media-assets.s3.amazonaws.com/seedream_images/62f7e3c6-2dd2-46c4-a0b1-f480b963bcd9.png",
+    "Diabetes": "https://user-gen-media-assets.s3.amazonaws.com/seedream_images/6cf765c5-cff7-4a4a-8a5b-d1502bf106e0.png",
+    "Stress / Mental Health": "https://user-gen-media-assets.s3.amazonaws.com/seedream_images/1b64cca1-925e-489f-bb43-16a4068576bb.png",
+    "Fitness / Lifestyle": "https://user-gen-media-assets.s3.amazonaws.com/seedream_images/a630b628-eea0-4c95-8a68-38555c086ecb.png",
 }
 
 st.markdown(
