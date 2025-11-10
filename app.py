@@ -28,6 +28,15 @@ def load_model(model_name):
 st.set_page_config(page_title="Health Predictor Dashboard", layout="wide")
 
 # ===========================================================
+# SIDEBAR NAVIGATION
+# ===========================================================
+st.sidebar.title("Navigation")
+app_mode = st.sidebar.radio(
+    "Select a Health Prediction Model:",
+    ("Heart Disease", "Diabetes", "Stress / Mental Health", "Fitness / Lifestyle")
+)
+
+# ===========================================================
 # CUSTOM CSS (Modern Navigation Bar with Improved UI)
 # ===========================================================
 st.markdown("""
@@ -85,7 +94,7 @@ input[type=number], select {
 """, unsafe_allow_html=True)
 
 # ===========================================================
-# BACKGROUND IMAGES BASED ON MODEL (Using custom generated images)
+# BACKGROUND IMAGES BASED ON MODEL
 # ===========================================================
 backgrounds = {
     "Heart Disease": "https://user-gen-media-assets.s3.amazonaws.com/seedream_images/62f7e3c6-2dd2-46c4-a0b1-f480b963bcd9.png",
@@ -109,7 +118,7 @@ st.markdown(
 )
 
 # ===========================================================
-# HEART DISEASE PREDICTION (13 features)
+# HEART DISEASE PREDICTION
 # ===========================================================
 if app_mode == "Heart Disease":
     st.title("Heart Disease Prediction")
