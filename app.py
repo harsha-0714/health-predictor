@@ -48,11 +48,10 @@ st.sidebar.markdown("---")
 st.sidebar.info("Developed by Harsha — Smart Health Prediction Suite")
 
 # --- HEART DISEASE MODEL ---
+# --- HEART DISEASE MODEL ---
 if page == "❤️ Heart Disease":
     set_background("assets/heart_bg.jpg")
-
     st.title("❤️ Heart Disease Prediction")
-    st.markdown("Enter the following details to predict the **likelihood of heart disease**:")
 
     age = st.slider("Age", 20, 100, 45)
     chol = st.number_input("Cholesterol (mg/dL)", 100, 400, 200)
@@ -62,13 +61,18 @@ if page == "❤️ Heart Disease":
 
     if st.button("🔍 Predict Heart Condition"):
         features = np.array([[age, chol, trestbps, thalach, oldpeak]])
-        result = heart_model.predict(features)[0]
+        try:
+            scaler = pickle.load(open("models/heart_scaler.pkl", "rb"))
+            features_scaled = scaler.transform(features)
+        except:
+            features_scaled = features  # fallback if scaler missing
+
+        result = heart_model.predict(features_scaled)[0]
+
         if result == 1:
-            st.error("⚠️ High risk of heart disease. Consult a cardiologist soon.")
+            st.error("⚠️ High risk of heart disease detected. Consult a cardiologist soon.")
         else:
-            st.success("✅ Heart looks healthy. Maintain regular checkups and exercise.")
-        st.markdown("---")
-        st.info("💡 **Prevention:** Eat low-sodium meals, exercise daily, and manage stress effectively.")
+            st.success("✅ Low Risk of Heart Disease detected. Keep maintaining your lifestyle!")
 
 # --- DIABETES MODEL ---
 elif page == "💉 Diabetes Risk":
