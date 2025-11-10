@@ -6,6 +6,7 @@ import os
 # =====================================================
 # SMART MODEL LOADER – searches multiple paths safely
 # =====================================================
+
 def load_model(model_name):
     possible_paths = [
         f"models/{model_name}",
@@ -17,11 +18,13 @@ def load_model(model_name):
         if os.path.exists(path):
             try:
                 with open(path, "rb") as f:
-                    return pickle.load(f)
+                    model = pickle.load(f)
+                    st.info(f"✅ Loaded {model_name} from: {path}")
+                    return model
             except Exception as e:
-                st.error(f"Error loading {model_name} from {path}: {e}")
+                st.error(f"Error reading {model_name} from {path}: {e}")
                 return None
-    st.error(f"Model not found: {model_name}")
+    st.error(f"❌ Model not found anywhere: {model_name}")
     return None
 
 
