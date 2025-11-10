@@ -16,7 +16,6 @@ def load_model(model_name):
         if os.path.exists(path):
             with open(path, "rb") as f:
                 model = pickle.load(f)
-                st.sidebar.success(f"Loaded: {model_name}")
                 return model
     st.sidebar.error(f"Model not found: {model_name}")
     return None
@@ -129,10 +128,10 @@ st.sidebar.markdown("<h4 style='color:#00eaff;text-align:center;'>Select a Predi
 app_mode = st.sidebar.radio(
     "",
     (
-        "❤️ Heart Disease",
-        "💉 Diabetes",
-        "🧠 Stress / Mental Health",
-        "🏃 Fitness / Lifestyle"
+        " Heart Disease",
+        " Diabetes",
+        " Stress / Mental Health",
+        " Fitness / Lifestyle"
     )
 )
 app_mode = app_mode.replace("❤️ ", "").replace("💉 ", "").replace("🧠 ", "").replace("🏃 ", "")
