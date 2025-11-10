@@ -4,36 +4,72 @@ import numpy as np
 import os
 
 # ===========================================================
-# ✅ UNIVERSAL MODEL LOADER
+# UNIVERSAL MODEL LOADER
 # ===========================================================
 def load_model(model_name):
-    path = os.path.join("models", model_name)
-    if os.path.exists(path):
-        with open(path, "rb") as f:
-            model = pickle.load(f)
-            st.success(f"✅ Loaded {model_name}")
-            return model
-    else:
-        st.error(f"❌ Model not found: {path}")
-        return None
+    paths_to_try = [
+        os.path.join("models", model_name),
+        os.path.join("/content/models", model_name),
+        model_name
+    ]
+    for path in paths_to_try:
+        if os.path.exists(path):
+            with open(path, "rb") as f:
+                model = pickle.load(f)
+                st.sidebar.success(f"Loaded: {model_name}")
+                return model
+    st.sidebar.error(f"Model not found: {model_name}")
+    return None
 
 
 # ===========================================================
-# ✅ PAGE CONFIGURATION
+# PAGE CONFIGURATION
 # ===========================================================
 st.set_page_config(page_title="Health Predictor Dashboard", layout="wide")
 
 # ===========================================================
-# ✅ SIDEBAR NAVIGATION
+# CUSTOM CSS (Modern Navigation Bar)
 # ===========================================================
-st.sidebar.title("🧭 Navigation")
+st.markdown("""
+<style>
+/* General App Background */
+[data-testid="stAppViewContainer"] {
+    background-color: #f5f7fa;
+    background-attachment: fixed;
+}
+
+/* Header */
+[data-testid="stHeader"] {
+    background: linear-gradient(to right, #0066cc, #0099ff);
+    color: white;
+    font-size: 22px;
+    padding: 15px;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: rgba(255, 255, 255, 0.95);
+    border-right: 2px solid #ccc;
+}
+
+/* Titles and text */
+h1, h2, h3, h4 {
+    color: #003366;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ===========================================================
+# SIDEBAR NAVIGATION
+# ===========================================================
+st.sidebar.title("Navigation")
 app_mode = st.sidebar.radio(
-    "Choose a Health Prediction Model:",
+    "Select a Health Prediction Model:",
     ("Heart Disease", "Diabetes", "Stress / Mental Health", "Fitness / Lifestyle")
 )
 
 # ===========================================================
-# ✅ BACKGROUND IMAGES BASED ON MODEL
+# BACKGROUND IMAGES BASED ON MODEL
 # ===========================================================
 backgrounds = {
     "Heart Disease": "https://cdn.pixabay.com/photo/2020/06/06/18/31/heart-5266636_1280.jpg",
@@ -51,25 +87,16 @@ st.markdown(
         background-position: center;
         background-attachment: fixed;
     }}
-    [data-testid="stHeader"] {{
-        background: rgba(0,0,0,0);
-    }}
-    [data-testid="stSidebar"] {{
-        background: rgba(255,255,255,0.9);
-    }}
     </style>
     """,
     unsafe_allow_html=True
 )
 
 # ===========================================================
-# ✅ HEART DISEASE PREDICTION
-# ===========================================================
-# ===========================================================
-# ✅ HEART DISEASE PREDICTION (13 features)
+# HEART DISEASE PREDICTION (13 features)
 # ===========================================================
 if app_mode == "Heart Disease":
-    st.title("💖 Heart Disease Prediction")
+    st.title("Heart Disease Prediction")
 
     model = load_model("heart_model.pkl")
     scaler = load_model("heart_scaler.pkl")
@@ -93,43 +120,32 @@ if app_mode == "Heart Disease":
         ca = st.selectbox("Number of Major Vessels (0–3)", [0, 1, 2, 3])
         thal = st.selectbox("Thal (1=Normal, 2=Fixed Defect, 3=Reversible Defect)", [1, 2, 3])
 
-    if st.button("🔍 Predict Heart Disease Risk"):
+    if st.button("Predict Heart Disease Risk"):
         if model is not None:
             try:
-                # 13 total features (match training)
                 features = np.array([[age, sex, cp, trestbps, chol, fbs,
                                       restecg, thalach, exang, oldpeak,
                                       slope, ca, thal]])
 
-                # Safely apply scaler if compatible
-                if scaler is not None:
-                    try:
-                        if scaler.n_features_in_ == features.shape[1]:
-                            features = scaler.transform(features)
-                        else:
-                            st.warning(f"⚠️ Skipping scaling — expected {scaler.n_features_in_} features, got {features.shape[1]}")
-                    except Exception as e:
-                        st.warning(f"⚠️ Skipping scaling: {e}")
+                if scaler is not None and hasattr(scaler, "n_features_in_"):
+                    if scaler.n_features_in_ == features.shape[1]:
+                        features = scaler.transform(features)
 
-                # Predict
                 result = model.predict(features)
                 risk = "High Risk" if result[0] == 1 else "Low Risk"
-                st.subheader(f"🩺 Prediction: {risk}")
-
+                st.subheader(f"Prediction: {risk}")
                 if result[0] == 1:
-                    st.error("⚠️ High Risk: Please consult a cardiologist.")
+                    st.error("High Risk: Please consult a cardiologist.")
                 else:
-                    st.success("✅ Low Risk: Maintain your healthy habits!")
+                    st.success("Low Risk: Maintain your healthy habits.")
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
-        else:
-            st.error("❌ Model not loaded correctly.")
 
 # ===========================================================
-# ✅ DIABETES PREDICTION
+# DIABETES PREDICTION
 # ===========================================================
 elif app_mode == "Diabetes":
-    st.title("💉 Diabetes Prediction")
+    st.title("Diabetes Prediction")
 
     model = load_model("diabetes_model.pkl")
 
@@ -145,22 +161,22 @@ elif app_mode == "Diabetes":
         dpf = st.number_input("Diabetes Pedigree Function", 0.0, 3.0, 0.5)
         age = st.number_input("Age", 20, 100, 40)
 
-    if st.button("🔍 Predict Diabetes"):
+    if st.button("Predict Diabetes"):
         if model is not None:
             features = np.array([[pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]])
             result = model.predict(features)
             risk = "Diabetic" if result[0] == 1 else "Non-Diabetic"
-            st.subheader(f"🩺 Prediction: {risk}")
+            st.subheader(f"Prediction: {risk}")
             if result[0] == 1:
-                st.error("⚠️ Diabetic: Follow medical guidance and diet control.")
+                st.error("Diabetic: Follow medical guidance and maintain diet control.")
             else:
-                st.success("✅ Non-Diabetic: Maintain healthy habits.")
+                st.success("Non-Diabetic: Maintain healthy habits.")
 
 # ===========================================================
-# ✅ STRESS / MENTAL HEALTH PREDICTION
+# STRESS / MENTAL HEALTH PREDICTION
 # ===========================================================
 elif app_mode == "Stress / Mental Health":
-    st.title("🧠 Stress / Mental Health Prediction")
+    st.title("Stress / Mental Health Prediction")
 
     model = load_model("stress_model.pkl")
 
@@ -173,40 +189,40 @@ elif app_mode == "Stress / Mental Health":
         employees = st.number_input("No. of Employees (approx.)", 1, 1000, 50)
         benefits = st.selectbox("Employer Benefits Provided (0/1)", [0, 1])
 
-    if st.button("🔍 Predict Stress Level"):
+    if st.button("Predict Stress Level"):
         if model is not None:
             features = np.array([[age, gender, family_history, employees, benefits]])
             result = model.predict(features)
             risk = "High Stress Risk" if result[0] == 1 else "Low Stress Risk"
-            st.subheader(f"🩺 Prediction: {risk}")
+            st.subheader(f"Prediction: {risk}")
             if result[0] == 1:
-                st.error("⚠️ High Stress Risk: Prioritize mental wellness and seek support.")
+                st.error("High Stress Risk: Prioritize mental wellness and seek support.")
             else:
-                st.success("✅ Low Stress Risk: Keep maintaining emotional balance.")
+                st.success("Low Stress Risk: Maintain emotional balance.")
 
 # ===========================================================
-# ✅ FITNESS / LIFESTYLE PREDICTION
+# FITNESS / LIFESTYLE PREDICTION
 # ===========================================================
 elif app_mode == "Fitness / Lifestyle":
-    st.title("🏃 Fitness / Lifestyle Prediction")
+    st.title("Fitness / Lifestyle Prediction")
 
     model = load_model("fitness_model.pkl")
 
     col1, col2 = st.columns(2)
     with col1:
-        steps = st.number_input("Avg. Steps per Day", 0, 50000, 8000)
-        calories = st.number_input("Avg. Calories Burned", 100, 6000, 2500)
+        steps = st.number_input("Average Steps per Day", 0, 50000, 8000)
+        calories = st.number_input("Average Calories Burned", 100, 6000, 2500)
     with col2:
         sleep = st.number_input("Sleep Duration (hours)", 2.0, 12.0, 7.0)
         sedentary = st.number_input("Sedentary Minutes", 0, 1000, 300)
 
-    if st.button("🔍 Predict Fitness Level"):
+    if st.button("Predict Fitness Level"):
         if model is not None:
             features = np.array([[steps, calories, sleep, sedentary]])
             result = model.predict(features)
             fitness = "Active Lifestyle" if result[0] == 1 else "Sedentary Lifestyle"
-            st.subheader(f"🩺 Prediction: {fitness}")
+            st.subheader(f"Prediction: {fitness}")
             if result[0] == 1:
-                st.success("✅ Active Lifestyle: Keep up the great habits!")
+                st.success("Active Lifestyle: Keep up your great habits.")
             else:
-                st.error("⚠️ Sedentary: Increase daily movement and reduce screen time.")
+                st.error("Sedentary: Increase movement and reduce screen time.")
