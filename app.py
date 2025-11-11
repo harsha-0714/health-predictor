@@ -224,11 +224,19 @@ def generate_health_advice(model_name, prediction):
 # HEALTH REPORT CARD
 # ===========================================================
 def show_health_report(score, risk_message, advice):
+    # Choose color based on message content
+    if "High" in risk_message or "Detected" in risk_message or "Diabetic" in risk_message:
+        color = "#d9534f"  # red (danger)
+    elif "Low" in risk_message or "Active" in risk_message or "No" in risk_message:
+        color = "#28a745"  # green (safe)
+    else:
+        color = "#f0ad4e"  # yellow (moderate / neutral)
+
     st.markdown(f"""
     <div class="health-advice">
         <h3>Health Report Summary</h3>
         <h4 style="color:#007bff;">Health Score: {score:.1f}/100</h4>
-        <p><strong>Assessment:</strong> {risk_message}</p>
+        <p style="font-size:17px; color:{color};"><strong>Assessment:</strong> {risk_message}</p>
         <hr>
         <h4>Personal Health Recommendations:</h4>
         <ul>
@@ -236,6 +244,7 @@ def show_health_report(score, risk_message, advice):
         </ul>
     </div>
     """, unsafe_allow_html=True)
+
 
 # ===========================================================
 # MODEL LOGIC
