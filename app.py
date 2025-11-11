@@ -2,17 +2,23 @@ import streamlit as st
 import pickle
 import numpy as np
 import os
+import random
 
 # ===========================================================
-# UNIVERSAL MODEL LOADER (Silent & Clean)
+# UNIVERSAL MODEL LOADER
 # ===========================================================
 def load_model(model_name):
-    for path in [os.path.join("models", model_name), model_name]:
+    paths_to_try = [
+        os.path.join("models", model_name),
+        os.path.join("/content/models", model_name),
+        model_name
+    ]
+    for path in paths_to_try:
         if os.path.exists(path):
             with open(path, "rb") as f:
                 return pickle.load(f)
-    return None  # no message shown — clean UI
-
+    st.sidebar.error(f"Model not found: {model_name}")
+    return None
 
 # ===========================================================
 # PAGE CONFIGURATION
@@ -40,7 +46,9 @@ st.markdown("""
     color: white;
     border-right: 3px solid #00aaff;
 }
-[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+[data-testid="stSidebar"] h1, 
+[data-testid="stSidebar"] h2, 
+[data-testid="stSidebar"] h3 {
     color: #ffffff;
     text-align: center;
     font-weight: 700;
@@ -92,6 +100,13 @@ h1, h2, h3 {
     color: #003366;
     font-weight: bold;
 }
+.health-advice {
+    background-color: rgba(255,255,255,0.9);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-top: 15px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -111,18 +126,15 @@ app_mode = st.sidebar.radio(
     )
 )
 
-# Add visual space before footer
 st.sidebar.markdown("<br><br><br><hr><br>", unsafe_allow_html=True)
-
 st.sidebar.markdown(
     """
-    <div class="sidebar-footer" style="text-align:center; color:#cccccc; font-size:13px;">
-        © 2025 Health Predictor <br> Smart Wellness System
+    <div class="sidebar-footer">
+        © 2025 Health Predictor | Smart Wellness System
     </div>
     """,
     unsafe_allow_html=True
 )
-
 
 # ===========================================================
 # BACKGROUND IMAGES
@@ -149,49 +161,80 @@ st.markdown(
 )
 
 # ===========================================================
-# HEALTH REPORT CARD FUNCTION
+# PERSONALIZED HEALTH RECOMMENDATION FUNCTION
 # ===========================================================
-def show_health_report(score, risk_message, suggestions):
+def generate_health_advice(model_name, prediction):
+    if model_name == "Heart Disease":
+        return [
+            "Consult a cardiologist for a full health check-up." if prediction == 1 else "Maintain regular physical activity.",
+            "Avoid smoking, reduce stress, and maintain a healthy weight.",
+            "Incorporate fiber-rich food, fish, and green vegetables.",
+            "Track your blood pressure and cholesterol annually."
+        ]
+    elif model_name == "Diabetes":
+        return [
+            "Monitor glucose levels regularly." if prediction == 1 else "Maintain a balanced diet and exercise daily.",
+            "Avoid sugary drinks and processed foods.",
+            "Include high-fiber foods and hydration in your diet.",
+            "Consult a healthcare provider for further evaluation."
+        ]
+    elif model_name == "Stress / Mental Health":
+        return [
+            "Practice meditation or mindfulness daily." if prediction == 1 else "Maintain consistent relaxation routines.",
+            "Get 7–8 hours of sleep and avoid overworking.",
+            "Stay socially connected and seek emotional support.",
+            "Balance screen time and outdoor activity."
+        ]
+    elif model_name == "Fitness / Lifestyle":
+        return [
+            "Increase daily steps and reduce sitting hours." if prediction == 0 else "Continue regular exercise and balanced diet.",
+            "Drink sufficient water and get proper rest.",
+            "Mix strength and cardio workouts weekly.",
+            "Track daily progress using a fitness app."
+        ]
+    return ["Maintain overall wellness through balanced habits."]
+
+# ===========================================================
+# HEALTH REPORT CARD
+# ===========================================================
+def show_health_report(score, risk_message, advice):
     st.markdown(f"""
-    <div style="background-color: #ffffffcc; padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-        <h3 style="color:#003366;">Health Report Summary</h3>
+    <div class="health-advice">
+        <h3>Health Report Summary</h3>
         <h4 style="color:#007bff;">Health Score: {score:.1f}/100</h4>
         <p><strong>Assessment:</strong> {risk_message}</p>
         <hr>
-        <h4 style="color:#003366;">Recommendations:</h4>
+        <h4>Personal Health Recommendations:</h4>
         <ul>
-            {''.join(f"<li>{s}</li>" for s in suggestions)}
+            {''.join(f"<li>{tip}</li>" for tip in advice)}
         </ul>
     </div>
     """, unsafe_allow_html=True)
 
 # ===========================================================
-# MODEL SECTIONS
+# MODEL LOGIC
 # ===========================================================
 
-# 1️⃣ HEART DISEASE
+# 1️⃣ HEART DISEASE MODEL
 if app_mode == "Heart Disease":
     st.title("Heart Disease Prediction")
     model = load_model("heart_model.pkl")
     scaler = load_model("heart_scaler.pkl")
 
     with st.form("heart_form"):
-        col1, col2 = st.columns(2)
-        with col1:
-            age = st.number_input("Age", 20, 100, 50)
-            trestbps = st.number_input("Resting BP (mm Hg)", 80, 200, 120)
-            chol = st.number_input("Serum Cholesterol (mg/dL)", 100, 600, 200)
-            thalach = st.number_input("Max Heart Rate", 60, 220, 150)
-            fbs = st.selectbox("Fasting Blood Sugar >120 mg/dL?", [0, 1])
-            restecg = st.selectbox("Resting ECG Results", [0, 1, 2])
-        with col2:
-            sex = st.selectbox("Sex (0=Female, 1=Male)", [0, 1])
-            cp = st.selectbox("Chest Pain Type (0–3)", [0, 1, 2, 3])
-            exang = st.selectbox("Exercise Induced Angina?", [0, 1])
-            oldpeak = st.number_input("ST Depression (Oldpeak)", 0.0, 6.0, 1.0)
-            slope = st.selectbox("Slope of ST Segment", [0, 1, 2])
-            ca = st.selectbox("Major Vessels (0–3)", [0, 1, 2, 3])
-            thal = st.selectbox("Thal Type", [1, 2, 3])
+        age = st.number_input("Age", 20, 100, 50)
+        sex = st.selectbox("Sex (0=Female, 1=Male)", [0, 1])
+        cp = st.selectbox("Chest Pain Type (0–3)", [0, 1, 2, 3])
+        trestbps = st.number_input("Resting BP (mm Hg)", 80, 200, 120)
+        chol = st.number_input("Serum Cholesterol (mg/dL)", 100, 600, 200)
+        fbs = st.selectbox("Fasting Blood Sugar >120?", [0, 1])
+        restecg = st.selectbox("Resting ECG Results", [0, 1, 2])
+        thalach = st.number_input("Max Heart Rate", 60, 220, 150)
+        exang = st.selectbox("Exercise Induced Angina?", [0, 1])
+        oldpeak = st.number_input("ST Depression", 0.0, 6.0, 1.0)
+        slope = st.selectbox("Slope of ST Segment", [0, 1, 2])
+        ca = st.selectbox("Major Vessels (0–3)", [0, 1, 2, 3])
+        thal = st.selectbox("Thal Type", [1, 2, 3])
         submitted = st.form_submit_button("Predict Heart Disease Risk")
 
         if submitted and model:
@@ -201,60 +244,40 @@ if app_mode == "Heart Disease":
                 if scaler.n_features_in_ == features.shape[1]:
                     features = scaler.transform(features)
             result = model.predict(features)
-            if result[0] == 1:
-                score = np.random.uniform(35, 60)
-                show_health_report(score, "High risk of heart complications detected.", [
-                    "Consult a cardiologist immediately.",
-                    "Avoid smoking, maintain diet control.",
-                    "Engage in daily light exercise."
-                ])
-            else:
-                score = np.random.uniform(85, 95)
-                show_health_report(score, "Low risk of heart disease.", [
-                    "Continue regular physical activity.",
-                    "Maintain a healthy weight and diet.",
-                    "Monitor blood pressure yearly."
-                ])
+            score = random.uniform(40, 95)
+            risk_msg = "High risk of heart disease detected." if result[0] == 1 else "Low risk of heart complications."
+            advice = generate_health_advice("Heart Disease", result[0])
+            show_health_report(score, risk_msg, advice)
 
-# 2️⃣ DIABETES
+# 2️⃣ DIABETES MODEL
 elif app_mode == "Diabetes":
     st.title("Diabetes Prediction")
     model = load_model("diabetes_model.pkl")
+
     with st.form("diabetes_form"):
-        col1, col2 = st.columns(2)
-        with col1:
-            pregnancies = st.number_input("Pregnancies", 0, 20, 1)
-            glucose = st.number_input("Glucose (mg/dL)", 50, 300, 120)
-            bp = st.number_input("Blood Pressure (mm Hg)", 40, 200, 80)
-            skin = st.number_input("Skin Thickness (mm)", 0, 99, 20)
-        with col2:
-            insulin = st.number_input("Insulin (mu U/ml)", 0, 900, 80)
-            bmi = st.number_input("BMI", 10.0, 60.0, 25.0)
-            dpf = st.number_input("Diabetes Pedigree Function", 0.0, 3.0, 0.5)
-            age = st.number_input("Age", 20, 100, 40)
-        submitted = st.form_submit_button("Predict Diabetes")
+        pregnancies = st.number_input("Pregnancies", 0, 20, 1)
+        glucose = st.number_input("Glucose Level", 50, 300, 120)
+        bp = st.number_input("Blood Pressure (mm Hg)", 40, 200, 80)
+        skin = st.number_input("Skin Thickness", 0, 99, 20)
+        insulin = st.number_input("Insulin", 0, 900, 80)
+        bmi = st.number_input("BMI", 10.0, 60.0, 25.0)
+        dpf = st.number_input("Diabetes Pedigree Function", 0.0, 3.0, 0.5)
+        age = st.number_input("Age", 20, 100, 40)
+        submitted = st.form_submit_button("Predict Diabetes Risk")
+
         if submitted and model:
             features = np.array([[pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]])
             result = model.predict(features)
-            if result[0] == 1:
-                score = np.random.uniform(40, 65)
-                show_health_report(score, "Diabetic condition detected.", [
-                    "Monitor blood sugar regularly.",
-                    "Increase fiber-rich food and reduce sugar intake.",
-                    "Consult a healthcare provider."
-                ])
-            else:
-                score = np.random.uniform(85, 95)
-                show_health_report(score, "No diabetes risk detected.", [
-                    "Maintain balanced nutrition.",
-                    "Exercise regularly.",
-                    "Check glucose annually."
-                ])
+            score = random.uniform(40, 95)
+            risk_msg = "Diabetic condition detected." if result[0] == 1 else "No diabetes risk detected."
+            advice = generate_health_advice("Diabetes", result[0])
+            show_health_report(score, risk_msg, advice)
 
-# 3️⃣ STRESS
+# 3️⃣ STRESS MODEL
 elif app_mode == "Stress / Mental Health":
     st.title("Stress / Mental Health Prediction")
     model = load_model("stress_model.pkl")
+
     with st.form("stress_form"):
         age = st.number_input("Age", 15, 70, 25)
         gender = st.selectbox("Gender (0=Male,1=Female)", [0, 1])
@@ -262,48 +285,31 @@ elif app_mode == "Stress / Mental Health":
         employees = st.number_input("Number of Employees", 1, 1000, 50)
         benefits = st.selectbox("Employer Benefits Provided?", [0, 1])
         submitted = st.form_submit_button("Predict Stress Level")
+
         if submitted and model:
             features = np.array([[age, gender, family_history, employees, benefits]])
             result = model.predict(features)
-            if result[0] == 1:
-                score = np.random.uniform(45, 65)
-                show_health_report(score, "High stress level detected.", [
-                    "Practice relaxation or mindfulness.",
-                    "Take regular breaks from work.",
-                    "Reach out to support networks."
-                ])
-            else:
-                score = np.random.uniform(80, 95)
-                show_health_report(score, "Low stress level.", [
-                    "Continue maintaining balance and self-care.",
-                    "Stay socially active.",
-                    "Sleep adequately each night."
-                ])
+            score = random.uniform(40, 95)
+            risk_msg = "High stress level detected." if result[0] == 1 else "Low stress level detected."
+            advice = generate_health_advice("Stress / Mental Health", result[0])
+            show_health_report(score, risk_msg, advice)
 
-# 4️⃣ FITNESS
+# 4️⃣ FITNESS MODEL
 elif app_mode == "Fitness / Lifestyle":
     st.title("Fitness / Lifestyle Prediction")
     model = load_model("fitness_model.pkl")
+
     with st.form("fitness_form"):
         steps = st.number_input("Average Steps per Day", 0, 50000, 8000)
         calories = st.number_input("Calories Burned per Day", 100, 6000, 2500)
         sleep = st.number_input("Sleep Duration (hours)", 2.0, 12.0, 7.0)
         sedentary = st.number_input("Sedentary Minutes", 0, 1000, 300)
         submitted = st.form_submit_button("Predict Fitness Level")
+
         if submitted and model:
             features = np.array([[steps, calories, sleep, sedentary]])
             result = model.predict(features)
-            if result[0] == 1:
-                score = np.random.uniform(85, 95)
-                show_health_report(score, "Active lifestyle detected.", [
-                    "Continue exercising regularly.",
-                    "Stay hydrated and rest adequately.",
-                    "Keep tracking your activity levels."
-                ])
-            else:
-                score = np.random.uniform(40, 65)
-                show_health_report(score, "Sedentary lifestyle detected.", [
-                    "Take short walks every hour.",
-                    "Stretch often and improve sleep consistency.",
-                    "Follow a balanced diet."
-                ])
+            score = random.uniform(40, 95)
+            risk_msg = "Sedentary lifestyle detected." if result[0] == 0 else "Active lifestyle detected."
+            advice = generate_health_advice("Fitness / Lifestyle", result[0])
+            show_health_report(score, risk_msg, advice)
