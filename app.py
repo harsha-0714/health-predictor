@@ -100,13 +100,39 @@ h1, h2, h3 {
     color: #003366;
     font-weight: bold;
 }
+/* Health Report Styling */
 .health-advice {
-    background-color: rgba(255,255,255,0.9);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin-top: 15px;
+    background: linear-gradient(135deg, #e3f2fd, #ffffff);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    margin-top: 25px;
+    border-left: 6px solid #007bff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.health-advice:hover {
+    transform: scale(1.01);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+.health-advice h3 {
+    color: #003366;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.health-advice h4 {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+.health-advice ul {
+    list-style-type: disc;
+    margin-left: 25px;
+    color: #333333;
+}
+.health-advice li {
+    margin-bottom: 6px;
+    font-size: 16px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
