@@ -330,21 +330,62 @@ elif app_mode == "Stress / Mental Health":
             show_health_report(score, risk_msg, advice)
 
 # 4️⃣ FITNESS MODEL
+# ===========================================================
+# FITNESS / LIFESTYLE PREDICTION (Calories Burned)
+# ===========================================================
 elif app_mode == "Fitness / Lifestyle":
-    st.title("Fitness / Lifestyle Prediction")
+    st.title("Fitness & Lifestyle Analysis")
+
     model = load_model("fitness_model.pkl")
 
+    st.markdown("""
+    <p style='font-size:16px;color:#003366;'>
+        Enter your daily activity details to estimate total calories burned.
+    </p>
+    """, unsafe_allow_html=True)
+
     with st.form("fitness_form"):
-        steps = st.number_input("Average Steps per Day", 0, 50000, 8000)
-        calories = st.number_input("Calories Burned per Day", 100, 6000, 2500)
-        sleep = st.number_input("Sleep Duration (hours)", 2.0, 12.0, 7.0)
-        sedentary = st.number_input("Sedentary Minutes", 0, 1000, 300)
-        submitted = st.form_submit_button("Predict Fitness Level")
+        col1, col2 = st.columns(2)
+        with col1:
+            total_steps = st.number_input("Average Steps per Day", min_value=1000, max_value=30000, value=8000, step=500)
+            total_distance = st.number_input("Total Distance Walked/Run (km)", min_value=0.5, max_value=30.0, value=5.0, step=0.5)
+        with col2:
+            very_active_minutes = st.number_input("Very Active Minutes per Day", min_value=0, max_value=300, value=60, step=5)
+            sedentary_minutes = st.number_input("Sedentary Minutes per Day", min_value=0, max_value=1000, value=300, step=10)
+
+        submitted = st.form_submit_button("Predict Calories Burned")
 
         if submitted and model:
-            features = np.array([[steps, calories, sleep, sedentary]])
-            result = model.predict(features)
-            score = random.uniform(40, 95)
-            risk_msg = "Sedentary lifestyle detected." if result[0] == 0 else "Active lifestyle detected."
-            advice = generate_health_advice("Fitness / Lifestyle", result[0])
-            show_health_report(score, risk_msg, advice)
+            try:
+                features = np.array([[total_steps, total_distance, very_active_minutes, sedentary_minutes]])
+                result = model.predict(features)
+                calories = result[0]
+
+                # Generate a "fitness score" out of 100
+                fitness_score = np.clip((calories - 1500) / 25, 0, 100)
+
+                st.success(f"Estimated Calories Burned: **{calories:.2f} kcal/day**")
+                st.markdown(f"<h4 style='color:#007bff;'>Fitness Score: {fitness_score:.1f}/100</h4>", unsafe_allow_html=True)
+
+                # --- Generate advice dynamically ---
+                if fitness_score >= 80:
+                    st.markdown("""
+                    <div style="background-color:#e8f9e9;padding:15px;border-radius:8px;">
+                        <b>Excellent!</b> You maintain a highly active lifestyle. Keep up the good work and stay consistent!
+                    </div>
+                    """, unsafe_allow_html=True)
+                elif 50 <= fitness_score < 80:
+                    st.markdown("""
+                    <div style="background-color:#fff3cd;padding:15px;border-radius:8px;">
+                        <b>Moderate Activity:</b> Try to include more intense workouts or longer walks to improve stamina.
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div style="background-color:#f8d7da;padding:15px;border-radius:8px;">
+                        <b>Low Activity:</b> You may need to reduce sedentary time and aim for 30–45 minutes of exercise daily.
+                    </div>
+                    """, unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Prediction Error: {e}")
+
