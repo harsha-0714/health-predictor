@@ -4,14 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 from fpdf import FPDF
-st.markdown("""
-<style>
-body, p, h1, h2, h3, h4, li, strong {
-    color: #1c1c1c !important;
-    font-family: 'Segoe UI', sans-serif !important;
-}
-</style>
-""", unsafe_allow_html=True)
+
 
 
 # ============================================================
@@ -147,18 +140,27 @@ def fallback_predict(model_name, features):
 # ============================================================
 def show_health_report(category, score, assessment, recs, color_class):
     st.markdown(f"""
-    <div style='background-color: #f9f9f9; padding: 20px; border-radius: 10px;
-                margin-top: 20px; box-shadow: 0px 4px 8px rgba(0,0,0,0.1);'>
-        <h3 style='color:#003366;'>{category} Health Report</h3>
-        <p><strong>Health Score:</strong> <span style='color:{color_class}; font-weight:700;'>{score:.1f}/100</span></p>
-        <p><strong>Assessment:</strong> {assessment}</p>
-        <hr>
-        <h4 style='color:#003366;'>Recommended Steps:</h4>
-        <ul>{''.join(f"<li>{r}</li>" for r in recs)}</ul>
+    <div style='background-color: #ffffff; padding: 25px; border-radius: 12px;
+                margin-top: 25px; box-shadow: 0px 4px 10px rgba(0,0,0,0.25);
+                border-left: 6px solid {color_class};
+                font-family: "Segoe UI", sans-serif; color: #1c1c1c;'>
+        <h3 style='color:#1c1c1c; font-weight:700;'>{category} Health Report</h3>
+        <p style='color:#2b2b2b; font-size:16px;'>
+            <strong>Health Score:</strong> 
+            <span style='color:{color_class}; font-weight:800;'>{score:.1f}/100</span>
+        </p>
+        <p style='color:#2b2b2b; font-size:15px;'>
+            <strong>Assessment:</strong> 
+            <span style='font-weight:600;'>{assessment}</span>
+        </p>
+        <hr style='border-top: 1px solid #ccc;'>
+        <h4 style='color:#111; font-weight:700;'>Recommended Steps:</h4>
+        <ul style='color:#1c1c1c; font-size:15px; line-height:1.6;'>
+            {''.join(f"<li>{r}</li>" for r in recs)}
+        </ul>
     </div>
     """, unsafe_allow_html=True)
     return score
-
 
 # ============================================================
 # ✅ COMBINED SCORE
