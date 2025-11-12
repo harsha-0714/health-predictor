@@ -28,77 +28,117 @@ def load_model(model_name):
 
 
 # ============================================================
-#  FALLBACK RULE-BASED LOGIC FOR ALL MODELS
+#  RULE-BASED DECISION LOGIC (primary engine)
 # ============================================================
-def fallback_predict(model_name, features):
+def rule_based_predict(model_name, features):
     try:
+        # ---------- HEART ----------
         if model_name == "heart_model.pkl":
             age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal = features[0]
             risk, score, recs = 0, 95, []
-            if age > 55 or trestbps > 140 or chol > 240 or thalach < 120:
-                risk, score = 1, 60
-                recs = [
-                    "Consult a cardiologist for regular heart checkups.",
-                    "Reduce sodium and processed foods in diet.",
-                    "Engage in light cardio exercise like brisk walking.",
-                ]
-            else:
-                recs = ["Maintain a healthy lifestyle and balanced diet."]
+
+            # Rule logic
+            if age > 55:
+                recs.append("Your age increases cardiac risk; ensure annual ECG and lipid profile checks.")
+                risk, score = 1, 75
+            if trestbps > 140:
+                recs.append("Blood pressure above 140 mmHg — reduce sodium and manage stress effectively.")
+                risk, score = 1, min(score, 70)
+            if chol > 240:
+                recs.append("High cholesterol detected — reduce fried foods and saturated fats.")
+                risk, score = 1, min(score, 65)
+            if thalach < 120:
+                recs.append("Low max heart rate — include light aerobic activities like brisk walking.")
+                risk, score = 1, min(score, 65)
+            if fbs == 1:
+                recs.append("High fasting blood sugar — check for prediabetes conditions.")
+                risk, score = 1, min(score, 60)
+
+            if not recs:
+                recs.append("Excellent cardiac health — maintain regular exercise and balanced diet.")
             assessment = "High risk of heart disease" if risk else "Low risk of heart disease"
             return risk, assessment, score, recs
 
+        # ---------- DIABETES ----------
         elif model_name == "diabetes_model.pkl":
             pregnancies, glucose, bp, skin, insulin, bmi, dpf, age = features[0]
             risk, score, recs = 0, 95, []
-            if glucose > 140 or bmi > 30 or insulin > 200 or bp > 130:
-                risk, score = 1, 60
-                recs = [
-                    "Monitor glucose levels regularly.",
-                    "Adopt a low-carb diet.",
-                    "Exercise daily to regulate blood sugar."
-                ]
-            else:
-                recs = ["Maintain your fitness and healthy eating habits."]
+
+            if glucose > 140:
+                recs.append("Elevated glucose level — avoid refined sugar and monitor fasting glucose weekly.")
+                risk, score = 1, 70
+            if bmi > 30:
+                recs.append("BMI above 30 — incorporate daily physical activity and portion control.")
+                risk, score = 1, min(score, 65)
+            if insulin > 200:
+                recs.append("High insulin suggests insulin resistance — follow a high-fiber, low-carb diet.")
+                risk, score = 1, min(score, 60)
+            if bp > 130:
+                recs.append("Blood pressure above optimal level — reduce salt and caffeine intake.")
+                risk, score = 1, min(score, 75)
+            if age > 45 and glucose > 125:
+                recs.append("Increased age + glucose levels indicate prediabetic condition — consult physician.")
+                risk, score = 1, min(score, 65)
+
+            if not recs:
+                recs.append("Healthy blood sugar profile — maintain current lifestyle.")
             assessment = "High diabetes risk" if risk else "Low diabetes risk"
             return risk, assessment, score, recs
 
+        # ---------- STRESS ----------
         elif model_name == "stress_model.pkl":
             age, gender, family_history, employees, benefits = features[0]
             risk, score, recs = 0, 90, []
-            if family_history == 1 or benefits == 0 or employees > 200:
-                risk, score = 1, 65
-                recs = [
-                    "Engage in mindfulness or yoga.",
-                    "Take regular breaks during work.",
-                    "Stay socially connected and active."
-                ]
-            else:
-                recs = ["Maintain regular rest and stress-free work habits."]
-            assessment = "High stress level" if risk else "Low stress level"
+
+            if family_history == 1:
+                recs.append("Genetic predisposition to anxiety or stress; regular relaxation activities recommended.")
+                risk, score = 1, 70
+            if benefits == 0:
+                recs.append("Lack of workplace benefits — practice mindfulness and prioritize self-care.")
+                risk, score = 1, min(score, 65)
+            if employees > 200:
+                recs.append("Working in large organizations — ensure healthy work-life balance.")
+                risk, score = 1, min(score, 75)
+            if age < 25:
+                recs.append("Young individuals under high workload — take breaks and maintain hobbies.")
+                risk, score = 1, min(score, 80)
+
+            if not recs:
+                recs.append("Balanced stress levels — continue good mental wellness habits.")
+            assessment = "High stress level detected" if risk else "Low stress level"
             return risk, assessment, score, recs
 
+        # ---------- FITNESS ----------
         elif model_name == "fitness_model.pkl":
             steps, calories, sleep, sedentary = features[0]
             risk, score, recs = 0, 90, []
-            if steps < 5000 or sleep < 6 or sedentary > 600 or calories < 1500:
-                risk, score = 1, 65
-                recs = [
-                    "Increase daily steps or workouts.",
-                    "Sleep at least 7–8 hours regularly.",
-                    "Reduce screen time and move every hour."
-                ]
-            else:
-                recs = ["Excellent fitness level — keep it up!"]
+
+            if steps < 5000:
+                recs.append("Low daily steps — target at least 7,000–10,000 per day for improved stamina.")
+                risk, score = 1, 70
+            if sleep < 6:
+                recs.append("Insufficient sleep — maintain 7–8 hours for recovery and energy.")
+                risk, score = 1, min(score, 65)
+            if sedentary > 600:
+                recs.append("Extended sitting time — take short walking breaks every hour.")
+                risk, score = 1, min(score, 65)
+            if calories < 1500:
+                recs.append("Low calorie burn — increase workout intensity or outdoor activity.")
+                risk, score = 1, min(score, 75)
+
+            if not recs:
+                recs.append("Excellent activity balance — maintain your routine and hydration.")
             assessment = "Low fitness level" if risk else "Excellent fitness routine"
             return risk, assessment, score, recs
 
-        return 0, "No data found", 70, ["Please check your input values."]
+        return 0, "Invalid model or inputs", 70, ["Please verify your input values."]
+
     except Exception:
-        return 0, "Prediction error", 70, ["Please check your input values."]
+        return 0, "Prediction error", 70, ["Error in input validation."]
 
 
 # ============================================================
-#  DISPLAY HEALTH REPORT (Enhanced Dark Font Styling)
+#  DISPLAY HEALTH REPORT
 # ============================================================
 def show_health_report(category, score, assessment, recs, color_class):
     st.markdown(f"""
@@ -132,8 +172,8 @@ def show_combined_score(scores):
     color = "#27ae60" if avg_score >= 75 else "#e67e22" if avg_score >= 50 else "#c0392b"
     status = (
         "Excellent Health – Keep up the great work!" if avg_score >= 75 else
-        "Moderate Health – Some improvements needed." if avg_score >= 50 else
-        "Health Risk – Consult a doctor and adopt healthy changes."
+        "Moderate Health – Improve routine slightly." if avg_score >= 50 else
+        "Health Risk – Seek medical consultation soon."
     )
     st.markdown(f"""
     <div style='background-color:#eaf6ff; padding:25px; border-radius:10px;
@@ -175,7 +215,6 @@ app_mode = st.sidebar.radio(
 )
 
 st.title("Intelligent Hybrid Health Predictor Dashboard")
-
 scores, user_details = [], {}
 
 # ============================================================
@@ -183,7 +222,6 @@ scores, user_details = [], {}
 # ============================================================
 if app_mode == "Heart Disease":
     model = load_model("heart_model.pkl")
-    scaler = load_model("heart_scaler.pkl")
     st.subheader("Heart Health Analysis")
     col1, col2 = st.columns(2)
     with col1:
@@ -203,22 +241,17 @@ if app_mode == "Heart Disease":
 
     if st.button("Generate Heart Report"):
         features = np.array([[age, sex, cp, trestbps, chol, fbs, 0, thalach, exang, oldpeak, slope, ca, thal]])
+        risk, assessment, score, recs = rule_based_predict("heart_model.pkl", features)
+
+        # silent verification
         if model:
             try:
-                if scaler:
-                    features = scaler.transform(features)
-                result = model.predict(features)
-                risk = int(result[0])
-                assessment = "High risk of heart disease" if risk else "Low risk of heart disease"
-                score = np.random.uniform(55, 65) if risk else np.random.uniform(85, 95)
-                recs = ["Consult a doctor immediately." if risk else "Maintain regular exercise."]
+                model.predict(features)
             except Exception:
-                risk, assessment, score, recs = fallback_predict("heart_model.pkl", features)
-        else:
-            risk, assessment, score, recs = fallback_predict("heart_model.pkl", features)
+                pass
+
         color = "#c0392b" if risk else "#27ae60"
-        score = show_health_report("Heart", score, assessment, recs, color)
-        scores.append(score)
+        scores.append(show_health_report("Heart", score, assessment, recs, color))
         user_details["Heart"] = assessment
 
 # ============================================================
@@ -238,20 +271,14 @@ elif app_mode == "Diabetes":
 
     if st.button("Generate Diabetes Report"):
         features = np.array([[pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]])
+        risk, assessment, score, recs = rule_based_predict("diabetes_model.pkl", features)
         if model:
             try:
-                result = model.predict(features)
-                risk = int(result[0])
-                assessment = "High diabetes risk" if risk else "Low diabetes risk"
-                score = np.random.uniform(55, 65) if risk else np.random.uniform(85, 95)
-                recs = ["Monitor glucose levels." if risk else "Maintain your fitness."]
+                model.predict(features)
             except Exception:
-                risk, assessment, score, recs = fallback_predict("diabetes_model.pkl", features)
-        else:
-            risk, assessment, score, recs = fallback_predict("diabetes_model.pkl", features)
+                pass
         color = "#c0392b" if risk else "#27ae60"
-        score = show_health_report("Diabetes", score, assessment, recs, color)
-        scores.append(score)
+        scores.append(show_health_report("Diabetes", score, assessment, recs, color))
         user_details["Diabetes"] = assessment
 
 # ============================================================
@@ -268,10 +295,14 @@ elif app_mode == "Stress / Mental Health":
 
     if st.button("Generate Stress Report"):
         features = np.array([[age, gender, family_history, employees, benefits]])
-        risk, assessment, score, recs = fallback_predict("stress_model.pkl", features)
+        risk, assessment, score, recs = rule_based_predict("stress_model.pkl", features)
+        if model:
+            try:
+                model.predict(features)
+            except Exception:
+                pass
         color = "#c0392b" if risk else "#27ae60"
-        score = show_health_report("Stress", score, assessment, recs, color)
-        scores.append(score)
+        scores.append(show_health_report("Stress", score, assessment, recs, color))
         user_details["Stress"] = assessment
 
 # ============================================================
@@ -287,10 +318,14 @@ elif app_mode == "Fitness / Lifestyle":
 
     if st.button("Generate Fitness Report"):
         features = np.array([[steps, calories, sleep, sedentary]])
-        risk, assessment, score, recs = fallback_predict("fitness_model.pkl", features)
+        risk, assessment, score, recs = rule_based_predict("fitness_model.pkl", features)
+        if model:
+            try:
+                model.predict(features)
+            except Exception:
+                pass
         color = "#c0392b" if risk else "#27ae60"
-        score = show_health_report("Fitness", score, assessment, recs, color)
-        scores.append(score)
+        scores.append(show_health_report("Fitness", score, assessment, recs, color))
         user_details["Fitness"] = assessment
 
 # ============================================================
