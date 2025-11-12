@@ -8,7 +8,7 @@ from fpdf import FPDF
 # =========================================================
 # 1️⃣ OpenAI Setup
 # =========================================================
-client = OpenAI(api_key=os.getenv("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"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_openai_advice(disease, features):
     """AI fallback using the new OpenAI API (>=1.0.0)."""
