@@ -4,6 +4,15 @@ import numpy as np
 import os
 import pandas as pd
 from fpdf import FPDF
+st.markdown("""
+<style>
+body, p, h1, h2, h3, h4, li, strong {
+    color: #1c1c1c !important;
+    font-family: 'Segoe UI', sans-serif !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 # ============================================================
 # ✅ UNIVERSAL MODEL LOADER
